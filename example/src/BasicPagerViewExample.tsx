@@ -1,16 +1,32 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, View, SafeAreaView, Animated, Text } from 'react-native';
+import React from 'react';
+import { Image, StyleSheet, View, SafeAreaView, Animated } from 'react-native';
 
-import { PagerView } from 'react-native-pager-view';
+import { LazyPagerView } from 'react-native-pager-view';
 
 import { LikeCount } from './component/LikeCount';
 import { NavigationPanel } from './component/NavigationPanel';
 import { useNavigationPanel } from './hook/useNavigationPanel';
+import type { CreatePage } from './utils';
 
-const AnimatedPagerView = Animated.createAnimatedComponent(PagerView);
+const AnimatedPagerView = Animated.createAnimatedComponent(LazyPagerView);
+
+function keyExtractor(page: CreatePage) {
+  return `${page.key}`;
+}
+
+function renderItem({ item }: { item: CreatePage }) {
+  return (
+    <View style={item.style}>
+      <Image style={styles.image} source={item.imgSource} />
+      <LikeCount />
+    </View>
+  );
+}
 
 export function BasicPagerViewExample() {
-  const { ref, ...navigationPanel } = useNavigationPanel<PagerView>();
+  const { ref, ...navigationPanel } = useNavigationPanel<
+    LazyPagerView<unknown>
+  >();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -26,25 +42,13 @@ export function BasicPagerViewExample() {
         onPageSelected={navigationPanel.onPageSelected}
         onPageScrollStateChanged={navigationPanel.onPageScrollStateChanged}
         pageMargin={10}
-        // Lib does not support dynamically orientation change
         orientation="horizontal"
-        // Lib does not support dynamically transitionStyle change
         transitionStyle="scroll"
         showPageIndicator={navigationPanel.dotsEnabled}
-      >
-        {useMemo(
-          () =>
-            navigationPanel.pages.map((page, index) => (
-              <View key={page.key} style={page.style} collapsable={false}>
-                <LikeCount />
-                <Text
-                  testID={`pageNumber${index}`}
-                >{`page number ${index}`}</Text>
-              </View>
-            )),
-          [navigationPanel.pages]
-        )}
-      </AnimatedPagerView>
+        data={navigationPanel.pages}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+      />
       <NavigationPanel {...navigationPanel} />
     </SafeAreaView>
   );

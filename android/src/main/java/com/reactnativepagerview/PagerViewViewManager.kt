@@ -134,6 +134,13 @@ class PagerViewViewManager : ViewGroupManager<ViewPager2>() {
     }
   }
 
+  override fun onAfterUpdateTransaction(view: ViewPager2) {
+    super.onAfterUpdateTransaction(view)
+    if ((view.adapter as FragmentAdapter).applyChanges()) {
+      view.post { reLayoutView(view) }
+    }
+  }
+
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Map<String, String>> {
     return MapBuilder.of(
       PageScrollEvent.EVENT_NAME, MapBuilder.of("registrationName", "onPageScroll"),
